@@ -21,14 +21,17 @@ router.route('/getAllProducts').get((req, res, next) => {
 
 // A termék lekérése id alapján
 router.route('/getProductById').get((req, res, next) => {
-    if (req.body.id) {
+    console.log(req.query.id)
+    if (req.query.id) {
         productModel
-            .find({ id: req.body.id })
+            .find({ id: req.query.id })
             .then(products => {
+                console.log(products)
                 return res.status(200).send({ data: products, message: null });
             })
             .catch(err => {
                 console.log(err);
+                console.log(products)
                 return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {
