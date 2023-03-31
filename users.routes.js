@@ -7,115 +7,132 @@ const userModel = mongoose.model('user');
 
 // Felhasználó Get-ek
 // Az összes felhasználó lekérése
-router.route('/').get((req, res, next) => {
-    userModel
-        .find({})
-        .then(users => {
-            return res.status(200).send(users);
-        })
-        .catch(err => {
-            console.log(err);
-            return res.status(500).send('Db error');
-        });
+router.route('/getAllUsers').get((req, res, next) => {
+    if (req.query.username) {
+        userModel
+            .findOne({ username: req.query.username })
+            .then(user => {
+                console.log(res);
+                if (user?.right === 'ADMIN') {
+                    userModel
+                        .find({})
+                        .then(users => {
+                            return res.status(200).send({ data: users, message: null });
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            return res.status(500).send({ data: null, message: 'Db error' });
+                        });
+                } else {
+                    userModel
+                        .find({ right: 'USER' })
+                        .then(users => {
+                            return res.status(200).send({ data: users, message: null });
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            return res.status(500).send({ data: null, message: 'Db error' });
+                        });
+                }
+            })
+            .catch(err => {
+                return res.status(404).send({ data: null, message: 'Nem található felhasználó' });
+            });
+    } else {
+        return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó Id-ja!' });
+    }
 });
 
 // A felhasználó lekérése id alapján
 router.route('/getUserById').get((req, res, next) => {
-    if (req.body.id) {
+    if (req.query.id) {
         userModel
-            .find({ id: req.body.id })
+            .find({ id: req.query.id })
             .then(user => {
-                return res.status(200).send(user);
+                return res.status(200).send({ data: user, message: null });
             })
             .catch(err => {
                 console.log(err);
-                return res.status(500).send('Db error');
+                return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {
-        return res.status(400).send('Hiányzik a felhasználó Id-ja!');
+        return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó Id-ja!' });
     }
 });
 
-// Felhasználó lekérése Id alapján
-router.route('/').get((req, res, next) => {
-    userModel
-        .find({})
-        .then(users => {
-            return res.status(200).send(users);
-        })
-        .catch(err => {
-            console.log(err);
-            return res.status(500).send('Db error');
-        });
+// A felhasználó lekérése felhasználónév alapján
+router.route('/getUserByUsername').get((req, res, next) => {
+    if (req.query.username) {
+        userModel
+            .find({ username: req.query.username })
+            .then(user => {
+                console.log(user)
+                return res.status(200).send({ data: user, message: null });
+            })
+            .catch(err => {
+                console.log(err);
+                return res.status(500).send({ data: null, message: 'Db error' });
+            });
+    } else {
+        return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó Id-ja!' });
+    }
 });
 
 // Felhasználó Post-ok
 // Felhasználó hozzáadása
-router.route('/users').post((req, res, next) => {
+router.route('/createUser').post((req, res, next) => {
     if (
-        req.body.id &&
-        req.body.username &&
-        req.body.firstName &&
-        req.body.lastName &&
-        req.body.email &&
-        req.body.postalCode &&
-        req.body.address &&
-        req.body.password &&
-        req.body.image
+        req.body.user.id &&
+        req.body.user.username &&
+        req.body.user.firstName &&
+        req.body.user.lastName &&
+        req.body.user.email &&
+        req.body.user.postalCode &&
+        req.body.user.address &&
+        req.body.user.password
     ) {
         userModel
-            .findOne({ id: req.body.id })
+            .findOne({ id: req.body.user.id })
             .then(user => {
+                console.log(user);
                 // Ha már létezik a felhasználó, akkor 400 hiba
                 if (user) {
-                    return res.status(400).send('A felhasználó már létezik!');
+                    return res.status(400).send({ data: null, message: 'A felhasználó már létezik!' });
                 } else {
-                    const newUser = new userModel({
-                        id: req.body.id,
-                        username: req.body.username,
-                        firstName: req.body.firstName,
-                        lastName: req.body.lastName,
-                        email: req.body.email,
-                        right: req.body.right,
-                        postalCode: req.body.postalCode,
-                        address: req.body.address,
-                        password: req.body.password,
-                        image: req.body.image
-                    });
+                    const newUser = new userModel(req.body.user);
                     newUser
                         .save()
-                        .then(() => {
-                            return res.status(200).send('Sikeres mentés!');
+                        .then(result => {
+                            console.log('valami');
+                            return res.status(200).send({ data: result, message: null });
                         })
                         .catch(err => {
                             console.log(err);
-                            return res.status(500).send('Hiba mentés közben!');
+                            return res.status(500).send({ data: null, message: 'Hiba mentés közben!' });
                         });
                 }
             })
             .catch(err => {
                 console.log(err);
-                return res.status(500).send('Db error');
+                return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {
-        if (!req.body.id) {
-            return res.status(400).send('Hiányzik a felhasználó Id-ja!');
-        } else if (!req.body.username) {
-            return res.status(400).send('Hiányzik a felhasználó felhasználóneve!');
-        } else if (!req.body.firstName) {
-            return res.status(400).send('Hiányzik a felhasználó keresztneve!');
-        } else if (!req.body.lastName) {
-            return res.status(400).send('Hiányzik a felhasználó vezetékneve!');
-        } else if (!req.body.email) {
-            return res.status(400).send('Hiányzik a felhasználó emailje!');
-        } else if (!req.body.postalCode) {
-            return res.status(400).send('Hiányzik a felhasználó irányítószáma!');
-        } else if (!req.body.address) {
-            return res.status(400).send('Hiányzik a felhasználó címe!');
-        } else if (!req.body.password) {
-            return res.status(400).send('Hiányzik a felhasználó jelszava!');
-        } else if (!req.body.image) {
-            return res.status(400).send('Hiányzik a felhasználó képe!');
+        if (!req.body.user.id) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó Id-ja!' });
+        } else if (!req.body.user.username) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó felhasználóneve!' });
+        } else if (!req.body.user.firstName) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó keresztneve!' });
+        } else if (!req.body.user.lastName) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó vezetékneve!' });
+        } else if (!req.body.user.email) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó emailje!' });
+        } else if (!req.body.user.postalCode) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó irányítószáma!' });
+        } else if (!req.body.user.address) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó címe!' });
+        } else if (!req.body.user.password) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó jelszava!' });
         }
     }
 });
@@ -124,129 +141,68 @@ router.route('/users').post((req, res, next) => {
 // Felhasználó szerkesztése
 router.route('/editUser').put((req, res, next) => {
     if (
-        req.body.id &&
-        req.body.username &&
-        req.body.firstName &&
-        req.body.lastName &&
-        req.body.email &&
-        req.body.right &&
-        req.body.postalCode &&
-        req.body.address &&
-        req.body.password &&
-        req.body.image
+        req.body.user.id &&
+        req.body.user.username &&
+        req.body.user.firstName &&
+        req.body.user.lastName &&
+        req.body.user.email &&
+        req.body.user.right &&
+        req.body.user.postalCode &&
+        req.body.user.address &&
+        req.body.user.password
     ) {
         userModel
-            .findOne({ id: req.body.id })
+            .findOne({ id: req.body.user.id })
             .then(user => {
+                console.log(user);
                 // Ha már létezik a felhasználó, akkor 400 hiba
                 if (user) {
-                    user.username = req.body.username;
-                    user.firstName = req.body.firstName;
-                    user.lastName = req.body.lastNam;
-                    user.email = req.body.email;
-                    user.right = req.body.right;
-                    user.postalCode = req.body.postalCode;
-                    user.address = req.body.address;
-                    user.password = req.body.password;
-                    user.image = req.body.image;
-                    user.save()
-                        .then(() => {
-                            return res.status(200).send('Sikeres mentés!');
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            return res.status(500).send('Hiba mentés közben!');
-                        });
-                } else {
-                    return res.status(400).send('A felhasználó még nem létezik!');
-                }
-            })
-            .catch(err => {
-                console.log(err);
-                return res.status(500).send('Db error');
-            });
-    } else {
-        if (!req.body.username) {
-            return res.status(400).send('Hiányzik a felhasználó felhasználóneve!');
-        } else if (!req.body.firstName) {
-            return res.status(400).send('Hiányzik a felhasználó keresztneve!');
-        } else if (!req.body.lastName) {
-            return res.status(400).send('Hiányzik a felhasználó vezetékneve!');
-        } else if (!req.body.email) {
-            return res.status(400).send('Hiányzik a felhasználó emailje!');
-        } else if (!req.body.right) {
-            return res.status(400).send('Hiányzik a felhasználó joga!');
-        } else if (!req.body.postalCode) {
-            return res.status(400).send('Hiányzik a felhasználó irányítószáma!');
-        } else if (!req.body.address) {
-            return res.status(400).send('Hiányzik a felhasználó címe!');
-        } else if (!req.body.password) {
-            return res.status(400).send('Hiányzik a felhasználó jelszava!');
-        }else if (!req.body.image) {
-            return res.status(400).send('Hiányzik a felhasználó képe!');
-        }
-    }
-});
+                    user.username = req.body.user.username;
+                    user.firstName = req.body.user.firstName;
+                    user.lastName = req.body.user.lastName;
+                    if (user.email !== req.body.user.email) {
+                        user.email = req.body.user.email;
+                    }
+                    user.right = req.body.user.right;
+                    user.postalCode = req.body.user.postalCode;
+                    user.address = req.body.user.address;
+                    user.password = req.body.user.password;
 
-// Felhasználó szerkesztése
-router.route('/editUser').put((req, res, next) => {
-    if (
-        req.body.id &&
-        req.body.username &&
-        req.body.firstName &&
-        req.body.lastName &&
-        req.body.email &&
-        req.body.right &&
-        req.body.postalCode &&
-        req.body.address &&
-        req.body.password
-    ) {
-        userModel
-            .findOne({ id: req.body.id })
-            .then(user => {
-                // Ha már létezik a felhasználó, akkor 400 hiba
-                if (user) {
-                    (user.username = req.body.username),
-                        (user.firstName = req.body.firstName),
-                        (user.lastName = req.body.lastName),
-                        (user.email = req.body.email),
-                        (user.right = req.body.right),
-                        (user.postalCode = req.body.postalCode),
-                        (user.address = req.body.address),
-                        (user.password = req.body.password);
+                    //console.log(editUser)
                     user.save()
                         .then(() => {
-                            return res.status(200).send('Sikeres mentés!');
+                            console.log('valami')
+                            return res.status(200).send({ data: user, message: null });
                         })
                         .catch(err => {
                             console.log(err);
-                            return res.status(500).send('Hiba mentés közben!');
+                            return res.status(500).send({ data: null, message: 'Hiba mentés közben!' });
                         });
                 } else {
-                    return res.status(400).send('A felhasználó még nem létezik!');
+                    return res.status(400).send({ data: null, message: 'A felhasználó még nem létezik!' });
                 }
             })
             .catch(err => {
                 console.log(err);
-                return res.status(500).send('Db error');
+                return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {
-        if (!req.body.username) {
-            return res.status(400).send('Hiányzik a felhasználó felhasználóneve!');
-        } else if (!req.body.firstName) {
-            return res.status(400).send('Hiányzik a felhasználó keresztneve!');
-        } else if (!req.body.lastName) {
-            return res.status(400).send('Hiányzik a felhasználó vezetékneve!');
-        } else if (!req.body.email) {
-            return res.status(400).send('Hiányzik a felhasználó emailje!');
-        } else if (!req.body.right) {
-            return res.status(400).send('Hiányzik a felhasználó joga!');
-        } else if (!req.body.postalCode) {
-            return res.status(400).send('Hiányzik a felhasználó irányítószáma!');
-        } else if (!req.body.address) {
-            return res.status(400).send('Hiányzik a felhasználó címe!');
-        } else if (!req.body.password) {
-            return res.status(400).send('Hiányzik a felhasználó jelszava!');
+        if (!req.body.user.username) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó felhasználóneve!' });
+        } else if (!req.body.user.firstName) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó keresztneve!' });
+        } else if (!req.body.user.lastName) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó vezetékneve!' });
+        } else if (!req.body.user.email) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó emailje!' });
+        } else if (!req.body.user.right) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó joga!' });
+        } else if (!req.body.user.postalCode) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó irányítószáma!' });
+        } else if (!req.body.user.address) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó címe!' });
+        } else if (!req.body.user.password) {
+            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó jelszava!' });
         }
     }
 });
@@ -260,21 +216,21 @@ router.route('/deleteUser').delete((req, res, next) => {
                 if (user) {
                     user.deleteOne()
                         .then(() => {
-                            return res.status(200).send('Sikeres törlés!');
+                            return res.status(200).send({ data: user, message: null });
                         })
                         .catch(err => {
-                            return res.status(500).send('Hiba törlés közben!');
+                            return res.status(500).send({ data: null, message: 'Hiba törlés közben!' });
                         });
                 } else {
-                    return res.status(400).send('A felhasználó még nem létezik!');
+                    return res.status(400).send({ data: null, message: 'A felhasználó még nem létezik!' });
                 }
             })
             .catch(err => {
-                console.log(err);
-                return res.status(500).send('Db error');
+                console.log; //(err);
+                return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {
-        return res.status(400).send('Hiányzik a felhasználó Id-ja!');
+        return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó Id-ja!' });
     }
 });
 

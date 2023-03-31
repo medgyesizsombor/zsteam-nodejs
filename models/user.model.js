@@ -11,8 +11,7 @@ const userSchema = new mongoose.Schema(
         right: { type: String, enum: ['ADMIN', 'USER', 'PREMIUM_USER'], default: 'USER' },
         postalCode: { type: Number, required: true },
         address: { type: String, required: true },
-        password: { type: String, required: true },
-        image: { type: String, required: true }
+        password: { type: String, required: true }
     },
     { collection: 'user' }
 );
@@ -25,14 +24,14 @@ userSchema.pre('save', function (next) {
         bcrypt.genSalt(10, function (error, salt) {
             // Ha hiba van a salt generálása során
             if (error) {
-                console.log('Hiba', error);
+                console.log//('Hiba', error);
                 return next(error);
             }
 
             bcrypt.hash(user.password, salt, function (err, hash) {
                 // Ha hiba van a hashelés során
                 if (err) {
-                    console.log('Hiba', error);
+                    console.log//('Hiba', error);
                     return next(error);
                 }
 
