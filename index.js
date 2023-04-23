@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 
 const mongoose = require('mongoose');
 
+const path = require('path');
+
 const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
 const expressSession = require('express-session');
@@ -18,11 +20,11 @@ const dbUrl = 'mongodb+srv://zsombor:zItJFiKFYORzdmRg@zsteam-cluster.arnlvcj.mon
 mongoose.connect(dbUrl);
 
 mongoose.connection.on('connected', () => {
-  console.log//('Kapcsolódva!');
+    console.log; //('Kapcsolódva!');
 });
 
 mongoose.connection.on('error', err => {
-  console.log//('Error', err);
+    console.log; //('Error', err);
 });
 
 require('./models/product.model');
@@ -37,11 +39,11 @@ app.use(bodyParser.json({}));
 let originsWhitelist = ['http://localhost:4200'];
 
 let corsOptions = {
-  origin: function (origin, callback) {
-    let isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
-    callback(null, isWhitelisted);
-  },
-  credentials: true
+    origin: function (origin, callback) {
+        let isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+        callback(null, isWhitelisted);
+    },
+    credentials: true
 };
 
 app.use(cors(corsOptions));
@@ -49,73 +51,78 @@ app.use(cors(corsOptions));
 //app.use(cors({ origin: originsWhitelist }))
 
 passport.use(
-  'local',
-  new localStrategy({ usernameField: 'username' }, function (username, password, done) {
-    userModel
-      .findOne({ username })
-      .then(user => {
-        // Ha nincs user
-        if (!user) {
-          return done('Nincs ilyen felhasználónév!', null);
-        }
+    'local',
+    new localStrategy(function (username, password, done) {
+        userModel
+            .findOne({ username })
+            .then(user => {
+                // Ha nincs user
+                if (!user) {
+                    return done('Nincs ilyen felhasználónév!', null);
+                }
 
-        // Jelszó összehasonlítása
-        user.comparePasswords(password, function (err, success) {
-          if (err) {
-            return done('Hiba történt az összehasonlítás közben!', false);
-          }
+                // Jelszó összehasonlítása
+                user.comparePasswords(password, function (err, success) {
+                    if (err) {
+                        return done('Hiba történt az összehasonlítás közben!', false);
+                    }
 
-          return done(null, user);
-        });
-      })
-      .catch(err => {
-        return done('Hiba a lekérés során!', null);
-      });
-  })
+                    return done(null, user);
+                });
+            })
+            .catch(err => {
+                return done('Hiba a lekérés során!', null);
+            });
+    })
 );
 
 // Bejelentkeztetésnél
 passport.serializeUser(function (user, done) {
-  if (!user) {
-    return done('Nincs megadva beléptethető felhasználó!', null);
-  }
+    if (!user) {
+        return done('Nincs megadva beléptethető felhasználó!', null);
+    }
 
-  return done(null, user);
+    return done(null, user);
 });
 
 // Kiléptetésnél
 passport.deserializeUser(function (user, done) {
-  if (!user) {
-    return done('Nincs user, akit kiléptethetnénk', null);
-  }
+    if (!user) {
+        return done('Nincs user, akit kiléptethetnénk', null);
+    }
 
-  return done(null, user);
+    return done(null, user);
 });
 
 app.use(
-  expressSession({
-    secret: 'topSecretForPrfBeadando2023',
-    resave: true,
-    saveUninitialized: true,
-  })
+    expressSession({
+        secret: 'topSecretForPrfBeadando2023',
+        resave: true,
+        saveUninitialized: true
+    })
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/', (req, res, next) => {
+/* app.get('/', (req, res, next) => {
   res.status(200).send('Hello World!');
-});
+}); */
 
-app.use('/products', require('./products.routes.js'));
-app.use('/users', require('./users.routes'));
-app.use('/authenticate', require('./authenticate.routes'));
+app.use(express.static(path.join(__dirname, 'public')))
+    .set('views', path.join(__dirname, 'views'))
+    .set('view engine', 'ejs')
+    .get('/', (req, res) => res.render('pages/index.html'));
+
+app.use('/products', require('./routes/products.routes.js'));
+app.use('/users', require('./routes/users.routes'));
+app.use('/authenticate', require('./routes/authenticate.routes'));
 
 //Error handler
 app.use((req, res, next) => {
-  res.status(404).send('A kért erőforrás nem található!');
+    res.status(404).send('A kért erőforrás nem található!');
 });
 
 app.listen(port, () => {
-  console.log//(`A szerver fut a ${port}-on!`);
+    console.log; //(`A szerver fut a ${port}-on!`);
 });

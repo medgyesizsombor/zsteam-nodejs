@@ -34,7 +34,7 @@ router.route('/login').post((req, res, next) => {
 router.route('/logout').post((req, res, next) => {
     // Mivel middleware-re van bekötve, nem kell tokent keresni,
     // Be van már autentikálva
-    /* if (req.isAuthenticated()) {
+    if (req.isAuthenticated()) {
     //req.logOut();
     //return res.status(200).send('Kijelentkezve')
     req.logout({}, function (err) {
@@ -42,11 +42,11 @@ router.route('/logout').post((req, res, next) => {
         return res.status(500).send(err);
       }
 
-      return res.status(200).send('Sikeres kijelentkezés!');
+      return res.status(200).send({message: 'Sikeres kijelentkezés!'});
     });
   } else {
     return res.status(403).send('Nincs bejelentkezett felhasználó!');
-  } */
+  }
 });
 
 router.route('/status').get((req, res, next) => {
