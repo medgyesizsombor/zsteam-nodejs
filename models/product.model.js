@@ -6,7 +6,7 @@ const productSchema = new mongoose.Schema(
         name: { type: String, unique: true, required: true },
         price: { type: Number, required: true },
         category: { type: String, enum: ['GAME', 'DECK'], default: 'GAME' },
-        storage: { type: String, enum: ['64 GB', '256 GB', '512 GB', 'NULL'], default: '64 GB' }
+        storage: { type: String, enum: ['64 GB', '256 GB', '512 GB', 'NULL'], default: 'NULL' }
     },
     { collection: 'product' }
 );

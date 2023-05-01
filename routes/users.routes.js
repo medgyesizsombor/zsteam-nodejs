@@ -12,7 +12,6 @@ router.route('/getAllUsers').get((req, res, next) => {
         userModel
             .findOne({ username: req.query.username })
             .then(user => {
-                console.log(res);
                 if (user?.right === 'ADMIN') {
                     userModel
                         .find({})
@@ -66,7 +65,6 @@ router.route('/getUserByUsername').get((req, res, next) => {
         userModel
             .find({ username: req.query.username })
             .then(user => {
-                console.log(user)
                 return res.status(200).send({ data: user, message: null });
             })
             .catch(err => {
@@ -94,7 +92,6 @@ router.route('/createUser').post((req, res, next) => {
         userModel
             .findOne({ id: req.body.user.id })
             .then(user => {
-                console.log(user);
                 // Ha már létezik a felhasználó, akkor 400 hiba
                 if (user) {
                     return res.status(400).send({ data: null, message: 'A felhasználó már létezik!' });
@@ -103,7 +100,6 @@ router.route('/createUser').post((req, res, next) => {
                     newUser
                         .save()
                         .then(result => {
-                            console.log('valami');
                             return res.status(200).send({ data: result, message: null });
                         })
                         .catch(err => {
@@ -148,13 +144,11 @@ router.route('/editUser').put((req, res, next) => {
         req.body.user.email &&
         req.body.user.right &&
         req.body.user.postalCode &&
-        req.body.user.address &&
-        req.body.user.password
+        req.body.user.address
     ) {
         userModel
             .findOne({ id: req.body.user.id })
             .then(user => {
-                console.log(user);
                 // Ha már létezik a felhasználó, akkor 400 hiba
                 if (user) {
                     user.username = req.body.user.username;
@@ -166,12 +160,9 @@ router.route('/editUser').put((req, res, next) => {
                     user.right = req.body.user.right;
                     user.postalCode = req.body.user.postalCode;
                     user.address = req.body.user.address;
-                    user.password = req.body.user.password;
 
-                    //console.log(editUser)
                     user.save()
                         .then(() => {
-                            console.log('valami')
                             return res.status(200).send({ data: user, message: null });
                         })
                         .catch(err => {
@@ -201,8 +192,6 @@ router.route('/editUser').put((req, res, next) => {
             return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó irányítószáma!' });
         } else if (!req.body.user.address) {
             return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó címe!' });
-        } else if (!req.body.user.password) {
-            return res.status(400).send({ data: null, message: 'Hiányzik a felhasználó jelszava!' });
         }
     }
 });
@@ -226,7 +215,7 @@ router.route('/deleteUser').delete((req, res, next) => {
                 }
             })
             .catch(err => {
-                console.log; //(err);
+                console.log(err);
                 return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {

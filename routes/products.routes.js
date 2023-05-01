@@ -14,24 +14,21 @@ router.route('/getAllProducts').get((req, res, next) => {
             return res.status(200).send({ data: products, message: null });
         })
         .catch(err => {
-            console.log; //(err);
+            console.log(err);
             return res.status(500).send({ data: null, message: 'Db error' });
         });
 });
 
 // A termék lekérése id alapján
 router.route('/getProductById').get((req, res, next) => {
-    console.log(req.query.id)
     if (req.query.id) {
         productModel
             .find({ id: req.query.id })
             .then(products => {
-                console.log(products)
                 return res.status(200).send({ data: products, message: null });
             })
             .catch(err => {
                 console.log(err);
-                console.log(products)
                 return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {
@@ -47,7 +44,7 @@ router.route('/getAllDecks').get((req, res, next) => {
             return res.status(200).send({ data: decks, message: null });
         })
         .catch(err => {
-            console.log; //(err);
+            console.log(err);
             return res.status(500).send({ data: null, message: 'Db error' });
         });
 });
@@ -111,7 +108,6 @@ router.route('/createProduct').post((req, res, next) => {
 // Termékek Put-ok
 // Termék szerkesztése
 router.route('/editProduct').put((req, res, next) => {
-    console.log(req.body)
     if (req.body.product.id && req.body.product.name && req.body.product.price && req.body.product.category) {
         productModel
             .findOne({ id: req.body.product.id })
@@ -123,8 +119,6 @@ router.route('/editProduct').put((req, res, next) => {
                     product.category = req.body.product.category;
                     product.storage = req.body.product.storage;
 
-                    console.log(product)
-
                     // Termék mentése
                     product
                         .save()
@@ -132,7 +126,7 @@ router.route('/editProduct').put((req, res, next) => {
                             return res.status(200).send({ data: product, message: null });
                         })
                         .catch(err => {
-                            console.log; //(err);
+                            console.log(err);
                             return res.status(500).send({ data: null, message: 'Hiba mentés közben!' });
                         });
                 } else {
@@ -140,7 +134,7 @@ router.route('/editProduct').put((req, res, next) => {
                 }
             })
             .catch(err => {
-                console.log; //(err);
+                console.log(err);
                 return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {
@@ -176,7 +170,7 @@ router.route('/deleteProduct').delete((req, res, next) => {
                 }
             })
             .catch(err => {
-                console.log; //(err);
+                console.log(err);
                 return res.status(500).send({ data: null, message: 'Db error' });
             });
     } else {

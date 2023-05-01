@@ -20,11 +20,11 @@ const dbUrl = 'mongodb+srv://zsombor:zItJFiKFYORzdmRg@zsteam-cluster.arnlvcj.mon
 mongoose.connect(dbUrl);
 
 mongoose.connection.on('connected', () => {
-    console.log; //('Kapcsolódva!');
+    console.log('Kapcsolódva!');
 });
 
 mongoose.connection.on('error', err => {
-    console.log; //('Error', err);
+    console.log('Error', err);
 });
 
 require('./models/product.model');
@@ -48,8 +48,6 @@ let corsOptions = {
 
 app.use(cors(corsOptions));
 
-//app.use(cors({ origin: originsWhitelist }))
-
 passport.use(
     'local',
     new localStrategy(function (username, password, done) {
@@ -65,6 +63,10 @@ passport.use(
                 user.comparePasswords(password, function (err, success) {
                     if (err) {
                         return done('Hiba történt az összehasonlítás közben!', false);
+                    }
+
+                    if (!success) {
+                        return done('Nem egyezik meg a két jelszó!', false);
                     }
 
                     return done(null, user);
@@ -105,10 +107,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-/* app.get('/', (req, res, next) => {
-  res.status(200).send('Hello World!');
-}); */
-
 app.use(express.static(path.join(__dirname, 'public')))
     .set('views', path.join(__dirname, 'views'))
     .set('view engine', 'ejs')
@@ -124,5 +122,5 @@ app.use((req, res, next) => {
 });
 
 app.listen(port, () => {
-    console.log; //(`A szerver fut a ${port}-on!`);
+    console.log(`A szerver fut a ${port}-on!`);
 });
